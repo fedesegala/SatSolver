@@ -5,15 +5,15 @@ import java.util.Set;
 
 public class Clause {
     private Set<Atom> atoms = new HashSet<Atom>();
-
+    private Atom[] watchedLiterals = new Atom[2];
+    
     public Clause(String input) {
-        String [] atoms = input.split("or");
+        String [] atoms = input.split("\\s+");
 
         for (String atom : atoms){
-            if (atom.charAt(0) == '!')
-                this.atoms.add(new Atom(atom, false));
-            else
-                this.atoms.add(new Atom(atom, true));
+            if (!atom.isEmpty()) {
+                this.atoms.add(new Atom(Integer.parseInt(atom)));
+            }
         }
     }
 
