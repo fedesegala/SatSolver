@@ -1,5 +1,7 @@
 package SubSolver;
 
+import java.util.Objects;
+
 public class Atom {
     private final int name;
     private int assignedValue;  // -1 : not assigned, 0: false, 1: true
@@ -9,6 +11,11 @@ public class Atom {
         this.name = name;
         this.assignedValue = -1;
         this.watched = false;
+    }
+    public Atom(int name, int value, boolean watched) {
+        this.name = name;
+        this.assignedValue = value;
+        this.watched = watched;
     }
 
     // getter
@@ -31,8 +38,16 @@ public class Atom {
         this.watched = false;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Atom atom)) return false;
+        return getName() == atom.getName();
+    }
+
     public String toString() {
         return String.valueOf(this.name);
     }
+
 
 }

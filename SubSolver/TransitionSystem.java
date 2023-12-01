@@ -42,9 +42,35 @@ public class TransitionSystem {
             int watchedCount = 0;
             for (Atom a : c.getAtoms()) {
                 a.setWatched();
+                c.addWatchedLiteral(a, watchedCount);
                 watchedCount ++;
                 if (watchedCount == 2) break;
             }
         }
+    }
+
+    public boolean solve() {
+        boolean satisfiable;
+        boolean termination = false;
+
+        while (true) {
+            // propagate everything that's possible for the current level
+            propagate();
+            System.out.println(model.pop().toString());
+            System.exit(0);
+            // fix watched literals
+            // if nothing was propagated decide and fix watched literals
+        }
+
+    }
+
+    public void propagate() {
+        HashSet<Atom> currentLevel = model.pop();
+        for (Clause c : clauses.getClauses()) {
+            if (c.getWatchedLiterals().size() == 1) {
+                currentLevel.add(c.getWatchedLiterals().get(0));
+            }
+        }
+        model.push(currentLevel);
     }
 }
