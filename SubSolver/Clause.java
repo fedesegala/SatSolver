@@ -1,41 +1,26 @@
 package SubSolver;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
+
 
 public class Clause {
-    private Set<Atom> atoms = new HashSet<Atom>();
-    private ArrayList<Atom> watchedLiterals = new ArrayList<Atom>();
-    private int assignedValue = -1; // -1: to be defined, 0: false (conflict clause), 1: true
-    
-    public Clause(String input) {
-        String [] atoms = input.split("\\s+");
+    private ArrayList<ClauseLiteral> literals;
 
-        for (String atom : atoms){
-            if (!atom.isEmpty()) {
-                this.atoms.add(new Atom(Integer.parseInt(atom)));
-            }
+    public Clause(ArrayList<ClauseLiteral> literals) {
+        this.literals = new ArrayList<>();
+
+        this.literals.addAll(literals);
+
+        // if we have only one literal we have to immediately propogate it
+        if (this.literals.size() == 1) {
+            ClauseLiteral l = this.literals.remove(0);
+            l.setAssignedValue(1);
+            this.literals.add(l);
         }
     }
 
-    // getter
-    public Set<Atom> getAtoms() {
-        return atoms;
+    public ArrayList<ClauseLiteral> getLiterals() {
+        return literals;
     }
-    public ArrayList<Atom> getWatchedLiterals() {
-        return watchedLiterals;
-    }
-
-    public void addWatchedLiteral(Atom a, int index) {
-        this.watchedLiterals.add(index, a);
-    }
-
-    public void modifyAtom(Atom old, Atom atom) {
-        atoms.remove(old);
-        atoms.add(atom);
-    }
-
-
-
 }

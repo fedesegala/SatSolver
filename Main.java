@@ -1,13 +1,14 @@
-import SubSolver.Atom;
+import SubSolver.Literal;
+import SubSolver.ClauseLiteral;
 import SubSolver.Clause;
 import SubSolver.SetOfClauses;
-import SubSolver.TransitionSystem;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 
 public class Main {
     public static void main(String[] args) {
@@ -28,21 +29,30 @@ public class Main {
         }
 
         if (fileContent != null) {
-            SetOfClauses clauses = new SetOfClauses(fileContent);
-            TransitionSystem t = new TransitionSystem(clauses);
+            String [] clauses = fileContent.split(" 0");
 
-            clauses = t.getClauses();
+            ArrayList<Clause> c = new ArrayList<>();
+            for (String clause : clauses) {
+                ArrayList<ClauseLiteral> literals = new ArrayList<ClauseLiteral>();
 
-            for (Clause c : clauses.getClauses()) {
-                System.out.println(c.getAtoms().toString());
-                for (Atom a : c.getAtoms()) {
-                    if (a.isWatched()) {
-                        System.out.println(a);
+                for (String literal : clause.split("\\s+")) {
+                    if (!literal.isEmpty())
+                        literals.add(new ClauseLiteral(Integer.parseInt(literal)));
+                }
+
+                c.add(new Clause(literals));
+            }
+
+            SetOfClauses S = new SetOfClauses(c);
+
+            for (Clause clause : S.getClauses()) {
+                for (ClauseLiteral l : clause.getLiterals()) {
+                    if (l.getAssignedValue() != -1) {
+                        System.out.println(l);
                     }
                 }
             }
-
-            t.solve();
         }
+
     }
 }
