@@ -1,7 +1,8 @@
-import SubSolver.Literal;
-import SubSolver.ClauseLiteral;
-import SubSolver.Clause;
-import SubSolver.SetOfClauses;
+import SatSolver.Clause;
+import SatSolver.Formula;
+import SatSolver.Parser;
+import SatSolver.Solver;
+import SatSolver.SatSolver;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -12,47 +13,14 @@ import java.util.ArrayList;
 
 public class Main {
     public static void main(String[] args) {
-        String filePath = "prova.cnf";
-        String fileContent = null;
-        try {
-            // Use Paths.get() to obtain a Path object
-            Path path = Paths.get(filePath);
+        Parser p = new Parser("prova.cnf");
 
-            // Use Files.readAllBytes() to read all bytes from the file
-            byte[] fileBytes = Files.readAllBytes(path);
+        System.out.println(p.getPath());
 
-            // Convert the bytes to a string using StandardCharsets.UTF_8
-            fileContent = new String(fileBytes, StandardCharsets.UTF_8);
+        Formula f = p.getFormula();
 
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        SatSolver s = new SatSolver(f);
 
-        if (fileContent != null) {
-            String [] clauses = fileContent.split(" 0");
-
-            ArrayList<Clause> c = new ArrayList<>();
-            for (String clause : clauses) {
-                ArrayList<ClauseLiteral> literals = new ArrayList<ClauseLiteral>();
-
-                for (String literal : clause.split("\\s+")) {
-                    if (!literal.isEmpty())
-                        literals.add(new ClauseLiteral(Integer.parseInt(literal)));
-                }
-
-                c.add(new Clause(literals));
-            }
-
-            SetOfClauses S = new SetOfClauses(c);
-
-            for (Clause clause : S.getClauses()) {
-                for (ClauseLiteral l : clause.getLiterals()) {
-                    if (l.getAssignedValue() != -1) {
-                        System.out.println(l);
-                    }
-                }
-            }
-        }
-
+        System.out.println(s.solve());
     }
 }
