@@ -1,8 +1,8 @@
 package SatSolver;
 
 public class ConflictAnalysisResult {
-    private int decisionLevel;
-    private Clause learntClause;
+    protected int decisionLevel;
+    protected Clause learntClause;
 
     public ConflictAnalysisResult(int decisionLevel, Clause learntClause) {
         this.learntClause = learntClause;

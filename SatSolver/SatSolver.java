@@ -8,13 +8,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class SatSolver {
-    private Assignments model;
-    private Formula formula;
-    private Picker picker;
-
-    // 2 watched literals structures
-    private HashMap<Literal, ArrayList<Clause>> watchingClauses = new HashMap<>();
-    private HashMap<Clause, ArrayList<Literal>> watchedLiterals = new HashMap<>();
+    protected Assignments model;
+    protected Formula formula;
+    protected Picker picker;
 
     public SatSolver(Formula formula) {
         this.formula = formula;
@@ -53,14 +49,13 @@ public class SatSolver {
                 backtrack(analysisResult.getDecisionLevel());
 
                 this.model.setDecisionLevel(analysisResult.getDecisionLevel());
-
             }
 
         }
         return true;
     }
 
-    private void backtrack(int level) {
+    protected void backtrack(int level) {
         ArrayList<Integer> toRemove = new ArrayList<>();
 
         ArrayList<Integer> keys = new ArrayList<>(this.model.keySet());
@@ -79,16 +74,6 @@ public class SatSolver {
         }
 
         this.picker.setModel(this.model);
-    }
-
-    private void initWatchedLiterals() {
-        for (Clause c : this.formula) {
-            if (c.size() == 1) {
-                // adding a new 
-                watchingClauses.put(c.get(0), new ArrayList<>());
-                watchingClauses.get(c.get(0)).add(c);
-            }
-        }
     }
 
     private void addLearntClause(Clause c) {
@@ -148,7 +133,7 @@ public class SatSolver {
         return "unresolved";
     }
 
-    private boolean allVariablesAssigned() {
+    protected boolean allVariablesAssigned() {
         return formula.getVariables().size() == this.model.keySet().size();
     }
 
@@ -162,7 +147,7 @@ public class SatSolver {
         return new Clause(resultSet.stream().toList());
     }
 
-    private ConflictAnalysisResult conflictAnalysis(Clause conflict) {
+    protected ConflictAnalysisResult conflictAnalysis(Clause conflict) {
         if (this.model.getDecisionLevel() == 0) return new ConflictAnalysisResult(-1, null);
 
         // literals with current decision level
