@@ -1,8 +1,7 @@
-package SatSolver;
+package SatSolver.Model;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.ArrayList;
 
 public class Clause extends ArrayList<Literal>{
@@ -12,6 +11,7 @@ public class Clause extends ArrayList<Literal>{
         this.addAll(literals);
         super.sort(Comparator.naturalOrder());
     }
+
 
     @Override
     public int hashCode() {

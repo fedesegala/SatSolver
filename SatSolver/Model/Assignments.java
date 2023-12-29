@@ -1,4 +1,4 @@
-package SatSolver;
+package SatSolver.Model;
 
 import java.util.HashMap;
 

@@ -1,5 +1,7 @@
 package SatSolver;
 
+import SatSolver.Model.Clause;
+
 public class ConflictAnalysisResult {
     protected int decisionLevel;
     protected Clause learntClause;

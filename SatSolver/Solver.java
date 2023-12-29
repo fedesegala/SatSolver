@@ -1,6 +1,7 @@
 package SatSolver;
 
-import java.sql.Array;
+import SatSolver.Model.*;
+
 import java.util.*;
 import java.util.stream.Collectors;
 

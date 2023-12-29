@@ -1,5 +1,9 @@
 package SatSolver;
 
+import SatSolver.Model.Clause;
+import SatSolver.Model.Formula;
+import SatSolver.Model.Literal;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;

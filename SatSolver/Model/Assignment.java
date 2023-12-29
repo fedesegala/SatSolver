@@ -1,6 +1,4 @@
-package SatSolver;
-
-import java.util.HashMap;
+package SatSolver.Model;
 
 public class Assignment {
     private boolean value;

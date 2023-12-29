@@ -1,5 +1,9 @@
 package SatSolver;
 
+import SatSolver.Model.Clause;
+import SatSolver.Model.Formula;
+import SatSolver.Model.Literal;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -10,9 +14,6 @@ public class WatchingSolver extends SatSolver {
         super(f);
 
         this.initWatchedLiterals();
-
-        // debug
-        //this.watchedLiterals.keySet().forEach( c -> System.out.println(c + " ---> " + this.watchedLiterals.get(c)));
     }
 
     /**
@@ -40,7 +41,7 @@ public class WatchingSolver extends SatSolver {
 
         while (!super.allVariablesAssigned()) {
             Literal decision = picker.decide();
-            //System.out.println(decision);
+            // System.out.println(decision);
 
             // increase decision level
             super.model.setDecisionLevel(super.model.getDecisionLevel() + 1);
@@ -56,15 +57,27 @@ public class WatchingSolver extends SatSolver {
             while (true) {
                 PropagationResult afterPropagation = unitPropagation();
 
+                // debug
+                //System.out.println("conflict occurred: " + afterPropagation.clause);
+                //System.out.println("current model: ");
+                //this.model.forEach((integer, assignment) -> System.out.println("\t\t " + integer + ": " + assignment ));
+
                 if (!afterPropagation.reason.equals("conflict")) break;
 
                 ConflictAnalysisResult analysisResult = super.conflictAnalysis(afterPropagation.clause);
 
                 if (analysisResult.decisionLevel < 0) return false;
 
+                //System.out.println("\t Should backtrack at level " + analysisResult.decisionLevel);
+
                 super.backtrack(analysisResult.decisionLevel);
                 this.addLearntClause(afterPropagation.clause, analysisResult.learntClause);
                 super.model.setDecisionLevel(analysisResult.decisionLevel);
+
+                // debug
+                //System.out.println("\tlearnt clause: " + analysisResult.learntClause);
+                //System.out.println("\t After backtracking the model is");
+                //this.model.forEach((integer, assignment) -> System.out.println("\t\t" + integer + ": " + assignment ));
 
                 this.picker.setModel(super.model);
             }
@@ -106,6 +119,8 @@ public class WatchingSolver extends SatSolver {
 
             this.model.assign(propagation.getVariable(), !propagation.isNegated(), toPropagate);
             this.picker.setModel(this.model);
+
+            //System.err.println("\t\tPropagated Literal " + propagation);
 
             // try to fix the two watched literals of the involved clauses
             Clause conflict = this.fixWatchedLiterals(propagation);

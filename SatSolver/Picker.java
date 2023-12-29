@@ -1,10 +1,14 @@
 package SatSolver;
 
+import SatSolver.Model.Assignments;
+import SatSolver.Model.Clause;
+import SatSolver.Model.Formula;
+import SatSolver.Model.Literal;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
-import java.util.random.*;
 
 public class Picker {
     private Formula formula;
