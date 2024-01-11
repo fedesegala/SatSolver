@@ -1,12 +1,8 @@
 import SatSolver.EfficientSolver;
 import SatSolver.Model.Formula;
-import SatSolver.Model.Literal;
 import SatSolver.Parser;
-import SatSolver.WatchingSolver;
 import SatSolver.SatSolver;
 
-import java.time.Duration;
-import java.time.Instant;
 import java.util.Date;
 
 public class Main {
@@ -15,21 +11,20 @@ public class Main {
     }
 
     private static void fun2() {
-        Parser p = new Parser("prova.cnf");
+        Parser p = new Parser("unsat2.cnf");
 
         System.out.println(p.getPath());
 
         Formula f = p.getFormula();
 
-        //WatchingSolver s1 = new WatchingSolver(f);
         EfficientSolver s = new EfficientSolver(f);
 
         System.out.println(new Date());
 
-        //System.out.println(s1.solve());
-        System.out.println(s.solve());
+        s.cdclSolve();
 
         System.out.println(new Date());
+
     }
 
     /*

@@ -138,14 +138,17 @@ public class SatSolver {
         return formula.getVariables().size() == this.model.keySet().size();
     }
 
-    private Clause resolve(Clause a, Clause b, int x) {
+    protected Clause resolve(Clause a, Clause b, int x) {
         Set<Literal> resultSet = new HashSet<>(a);
         resultSet.addAll(b);
 
         resultSet.remove(new Literal(x, true));
         resultSet.remove(new Literal(x, false));
 
-        return new Clause(resultSet.stream().toList());
+        Clause res = new Clause(resultSet.stream().toList());
+        if (res.isEmpty())
+            System.err.println("Sono qui");
+        return res;
     }
 
     protected ConflictAnalysisResult conflictAnalysis(Clause conflict) {
@@ -185,7 +188,9 @@ public class SatSolver {
                 .sorted(Comparator.naturalOrder())
                 .collect(Collectors.toCollection(ArrayList<Integer>::new));
 
-        if (sortedDecisionLevels.size() <= 1) return new ConflictAnalysisResult(0, conflict);
+        if (sortedDecisionLevels.size() <= 1) {
+            return new ConflictAnalysisResult(0, conflict);
+        }
 
         return new ConflictAnalysisResult(sortedDecisionLevels.get(sortedDecisionLevels.size()-2), conflict);
 

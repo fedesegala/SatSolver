@@ -3,9 +3,7 @@ package SatSolver;
 import SatSolver.Model.Clause;
 import SatSolver.Model.Formula;
 import SatSolver.Model.Literal;
-import SatSolver.SatSolver;
 
-import java.sql.Array;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -60,10 +58,21 @@ public class EfficientSolver extends SatSolver {
         }
     }
 
-    public boolean solve() {
+    public void cdclSolve() {
+        SatResult result = this.satisfy();
+
+        if (result.sat) {
+            System.out.println("The formula is SAT");
+            this.model.forEach((i, assignment) -> System.out.println(i + "-> " + assignment.getValue()));
+        } else {
+            System.out.println("The formula is UNSAT, now generating the proof..");
+        }
+    }
+
+    private SatResult satisfy() {
         PropagationResult propagation = this.unitPropagation();
 
-        if (propagation.reason.equals("conflict")) return false;
+        if (propagation.reason.equals("conflict")) return new SatResult(propagation.clause, false);
 
         // after unit-propagation we have to update picker's model
         super.picker.setModel(super.model);
@@ -86,10 +95,16 @@ public class EfficientSolver extends SatSolver {
                 //this.model.forEach((integer, assignment) -> System.out.println("\t\t " + integer + ": " + assignment ));
 
                 if (!propagation.reason.equals("conflict")) break;
+                if (super.model.getDecisionLevel() == 0) {
+                    return new SatResult(propagation.clause, false);
+                }
 
-                ConflictAnalysisResult analysis = super.conflictAnalysis(propagation.clause);
+                ConflictAnalysisResult analysis = this.conflictAnalysis(propagation.clause);
 
-                if (analysis.decisionLevel < 0) return false;
+                if (analysis.decisionLevel < 0) {
+                    System.err.println(analysis.learntClause);
+                    return new SatResult(analysis.learntClause, false);
+                }
 
                 //System.out.println("\t Should backtrack at level " + analysis.decisionLevel);
                 super.backtrack(analysis.decisionLevel);
@@ -106,7 +121,7 @@ public class EfficientSolver extends SatSolver {
 
         }
 
-        return true;
+        return new SatResult(null, true);
     }
 
     private Clause fixWatchedLiterals(Literal literal) {
@@ -133,7 +148,7 @@ public class EfficientSolver extends SatSolver {
             }
 
             if (this.clause2lits.get(c).isEmpty()) conflict = c;
-            if (this.clause2lits.get(c).size() == 1 && !this.satisfiedClause(c)) {
+            if (this.clause2lits.get(c).size() == 1 && this.toBeSatisfied(c)) {
                 toPropagate.put(this.clause2lits.get(c).get(0), c);
             }
         }
@@ -172,7 +187,7 @@ public class EfficientSolver extends SatSolver {
                     this.lit2clauses.get(c.get(i)).add(c);
                 }
             }
-            if (this.clause2lits.get(c).size() == 1 && !this.satisfiedClause(c)) {
+            if (this.clause2lits.get(c).size() == 1 && this.toBeSatisfied(c)) {
                 toPropagate.put(this.clause2lits.get(c).get(0), c);
             }
         }
@@ -197,7 +212,7 @@ public class EfficientSolver extends SatSolver {
         return new PropagationResult("unresolved", null);
     }
 
-    public boolean satisfiedClause(Clause c) {
+    public boolean toBeSatisfied(Clause c) {
         List<Literal> watched = this.clause2lits.get(c);
 
         boolean found = false;
@@ -209,7 +224,49 @@ public class EfficientSolver extends SatSolver {
             }
         }
 
-        return found;
+        return !found;
+    }
+
+    protected ConflictAnalysisResult conflictAnalysis(Clause conflict) {
+        // literals with current decision level
+        ArrayList<Literal> currentLevelLiterals = conflict
+                .stream()
+                .filter(literal -> this.model.getDecisionLevel() == this.model.get(literal.getVariable()).getDecisionLevel())
+                .collect(Collectors.toCollection(ArrayList::new));
+
+        while (currentLevelLiterals.size() != 1) {
+            // implied literals
+            ArrayList<Literal> impliedLiterals = currentLevelLiterals
+                    .stream()
+                    .filter(literal -> this.model.get(literal.getVariable()).getJustification() != null)
+                    .collect(Collectors.toCollection(ArrayList::new));
+
+            Literal lit = impliedLiterals.iterator().next();
+            Clause justification = this.model.get(lit.getVariable()).getJustification();
+
+            conflict = super.resolve(conflict, justification, lit.getVariable());
+
+            currentLevelLiterals = conflict
+                    .stream()
+                    .filter(literal -> this.model.getDecisionLevel() == this.model.get(literal.getVariable()).getDecisionLevel())
+                    .collect(Collectors.toCollection(ArrayList::new));
+        }
+
+        HashSet<Integer> decisionLevels = conflict
+                .stream()
+                .map(literal -> model.get(literal.getVariable()).getDecisionLevel())
+                .collect(Collectors.toCollection(HashSet<Integer>::new));
+
+        ArrayList<Integer> sortedDecisionLevels = decisionLevels
+                .stream()
+                .sorted(Comparator.naturalOrder())
+                .collect(Collectors.toCollection(ArrayList<Integer>::new));
+
+        if (sortedDecisionLevels.size() <= 1) {
+            return new ConflictAnalysisResult(0, conflict);
+        }
+
+        return new ConflictAnalysisResult(sortedDecisionLevels.get(sortedDecisionLevels.size()-2), conflict);
     }
 
 }
