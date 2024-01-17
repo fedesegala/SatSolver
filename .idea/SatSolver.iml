@@ -7,5 +7,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="gs-core-2.0" level="project" />
+    <orderEntry type="library" name="jgrapht.core" level="project" />
   </component>
 </module>

@@ -4,6 +4,14 @@ public class Assignment {
     private boolean value;
     private Clause justification;
     private int decisionLevel;
+    int arrivalOrder;
+
+    public Assignment(boolean value, Clause justification, int decisionLevel, int arrivalOrder) {
+        this.value = value;
+        this.justification = justification;
+        this.decisionLevel = decisionLevel;
+        this.arrivalOrder = arrivalOrder;
+    }
 
     // used when we propagate, hence we save the propagation of the justification
     public Assignment(boolean value, Clause justification, int decisionLevel) {
@@ -28,6 +36,9 @@ public class Assignment {
     public boolean getValue() {
         return this.value;
     }
+    public int getArrivalOrder() {
+        return arrivalOrder;
+    }
 
     @Override
     public String toString() {
@@ -35,6 +46,7 @@ public class Assignment {
                 "value=" + value +
                 ", justification=" + justification +
                 ", decisionLevel=" + decisionLevel +
+                ", arrivalOrder=" + arrivalOrder +
                 '}';
     }
 }

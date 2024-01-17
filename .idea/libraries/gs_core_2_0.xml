@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="gs-core-2.0">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/gs-core-2.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

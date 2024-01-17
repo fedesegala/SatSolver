@@ -2,10 +2,7 @@ package SatSolver;
 
 import SatSolver.Model.*;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class SatSolver {
@@ -71,9 +68,16 @@ public class SatSolver {
         }
 
         for (int var : toRemove) {
-            this.model.remove(var);
+            this.model.unassign(var);
         }
 
+        List<Integer> arrivalOrders = this.model.keySet().stream()
+                .map(key -> this.model.get(key).getArrivalOrder())
+                .sorted()
+                .collect(Collectors.toCollection(ArrayList::new));
+
+        if (arrivalOrders.isEmpty()) this.model.setArrivalOrder(0);
+        else this.model.setArrivalOrder(arrivalOrders.get(arrivalOrders.size()-1));
         this.picker.setModel(this.model);
     }
 
@@ -145,10 +149,7 @@ public class SatSolver {
         resultSet.remove(new Literal(x, true));
         resultSet.remove(new Literal(x, false));
 
-        Clause res = new Clause(resultSet.stream().toList());
-        if (res.isEmpty())
-            System.err.println("Sono qui");
-        return res;
+        return new Clause(resultSet.stream().toList());
     }
 
     protected ConflictAnalysisResult conflictAnalysis(Clause conflict) {

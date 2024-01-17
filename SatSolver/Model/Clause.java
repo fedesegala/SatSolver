@@ -25,6 +25,8 @@ public class Clause extends ArrayList<Literal>{
 
     @Override
     public String toString() {
+        if (this.isEmpty()) return "☐";
+
         String [] literalRepresentations = new String[this.size()];
 
         for(int i = 0; i < this.size(); i++) {

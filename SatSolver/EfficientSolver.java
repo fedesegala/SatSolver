@@ -9,12 +9,16 @@ import java.util.stream.Collectors;
 
 public class EfficientSolver extends SatSolver {
     private final Set<Literal> literals = new HashSet<>();
+    private final Map<Clause, List<Clause>> generatedClauses = new HashMap<>();
     private final HashMap<Literal, List<Clause>> lit2clauses = new HashMap<>();
     private final HashMap<Clause, List<Literal>> clause2lits = new HashMap<>();
     private final Map<Literal, Clause> toPropagate = new HashMap<>();
+    private String filename;
+    private Proof proof;
 
-    public EfficientSolver(Formula f) {
+    public EfficientSolver(Formula f, String filename) {
         super(f);
+        this.filename = filename;
 
         this.initWatches();
         this.initPropagation();
@@ -65,7 +69,29 @@ public class EfficientSolver extends SatSolver {
             System.out.println("The formula is SAT");
             this.model.forEach((i, assignment) -> System.out.println(i + "-> " + assignment.getValue()));
         } else {
-            System.out.println("The formula is UNSAT, now generating the proof..");
+            System.out.println("\n\nThe formula is UNSAT, now generating the proof..\n\n");
+            //this.conflicts.forEach(System.out::println);
+            Clause conflict = result.lastConflict;
+
+            while(conflict.size() != 1) {
+                System.out.println("Resolving from conflict: " + conflict);
+                ConflictAnalysisResult analysis = this.conflictAnalysis(conflict);
+                conflict = analysis.learntClause;
+
+                this.model.forEach((var, as) -> System.out.println(var + "-> " + this.model.get(var)));
+            }
+
+            Clause justification = this.model.get(conflict.get(0).getVariable()).getJustification();
+
+            Clause empty = this.resolve(conflict, justification, conflict.get(0).getVariable());
+
+            System.out.println("\n\nPrinting Generated Clauses");
+
+            this.generatedClauses.forEach((clause, list) -> System.out.println(clause + "-> " + list));
+
+            System.out.println("\n\n");
+
+            this.proof = new Proof(empty, this);
         }
     }
 
@@ -94,15 +120,25 @@ public class EfficientSolver extends SatSolver {
                 //System.out.println("current model: ");
                 //this.model.forEach((integer, assignment) -> System.out.println("\t\t " + integer + ": " + assignment ));
 
+                //System.out.println("\u001B[32m" + "------------PROPAGATION-----------");
+                //this.model.forEach((var, as) -> System.out.println("\u001B[0m"+ "\t" + var + "-> " + as));
+                //System.out.println("Current conflict: " + propagation.clause);
+
                 if (!propagation.reason.equals("conflict")) break;
                 if (super.model.getDecisionLevel() == 0) {
+                    //super.backtrack(0);
+                    //super.model.setDecisionLevel(0);
                     return new SatResult(propagation.clause, false);
                 }
 
                 ConflictAnalysisResult analysis = this.conflictAnalysis(propagation.clause);
+                //System.out.println("Current Conflict: " + analysis.learntClause + "\n\tBacktrack at level: " + analysis.decisionLevel);
 
                 if (analysis.decisionLevel < 0) {
-                    System.err.println(analysis.learntClause);
+                    //super.backtrack(0);
+                    //super.model.setDecisionLevel(0);
+                    //this.addLearntClause(analysis.learntClause);
+                    //System.err.println(analysis.learntClause);
                     return new SatResult(analysis.learntClause, false);
                 }
 
@@ -206,7 +242,7 @@ public class EfficientSolver extends SatSolver {
             Clause conflict = this.fixWatchedLiterals(propagation);
 
             if (conflict != null) output = conflict;
-        }
+       }
 
         if (output != null) return new PropagationResult("conflict", output);
         return new PropagationResult("unresolved", null);
@@ -235,16 +271,27 @@ public class EfficientSolver extends SatSolver {
                 .collect(Collectors.toCollection(ArrayList::new));
 
         while (currentLevelLiterals.size() != 1) {
+            //System.out.println("\t\tSubConflict: " + conflict);
+
             // implied literals
             ArrayList<Literal> impliedLiterals = currentLevelLiterals
                     .stream()
                     .filter(literal -> this.model.get(literal.getVariable()).getJustification() != null)
                     .collect(Collectors.toCollection(ArrayList::new));
 
-            Literal lit = impliedLiterals.iterator().next();
+            //this.model.forEach((i, assignment) -> System.out.println(i + "-> " + assignment));
+
+
+            Literal lit = impliedLiterals.stream()
+                    .max(Comparator.comparingInt(literal -> this.model.get(literal.getVariable()).getArrivalOrder()))
+                    .orElse(null);
+
+            assert lit != null;
             Clause justification = this.model.get(lit.getVariable()).getJustification();
 
-            conflict = super.resolve(conflict, justification, lit.getVariable());
+            //System.out.println("\t\t\tResolving with " + justification);
+
+            conflict = this.resolve(conflict, justification, lit.getVariable());
 
             currentLevelLiterals = conflict
                     .stream()
@@ -269,4 +316,34 @@ public class EfficientSolver extends SatSolver {
         return new ConflictAnalysisResult(sortedDecisionLevels.get(sortedDecisionLevels.size()-2), conflict);
     }
 
+    protected Clause resolve(Clause a, Clause b, int x) {
+        Set<Literal> resultSet = new HashSet<>(a);
+        resultSet.addAll(b);
+
+        resultSet.remove(new Literal(x, true));
+        resultSet.remove(new Literal(x, false));
+
+        Clause result = new Clause(resultSet.stream().toList());
+
+        if (!this.generatedClauses.containsKey(result)) {
+            this.generatedClauses.put(result, new ArrayList<Clause>());
+        }
+
+        this.generatedClauses.get(result).add(a);
+        this.generatedClauses.get(result).add(b);
+
+        return new Clause(resultSet.stream().toList());
+    }
+
+    public Map<Clause, List<Clause>> getGeneratedClauses() {
+        return generatedClauses;
+    }
+
+    public String getFilename() {
+        return filename;
+    }
+
+    public Proof getProof() {
+        return proof;
+    }
 }

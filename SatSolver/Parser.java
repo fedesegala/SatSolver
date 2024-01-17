@@ -13,13 +13,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Parser {
+    private String filename;
     private Path path;
     private final String fileContent;
     private final Formula formula;
 
 
     public Parser(String path) {
-        this.fileContent = initFileContent(path);
+        this.filename = path;
+        this.fileContent = initFileContent(path + ".cnf");
         this.formula = initFormula();
     }
 
@@ -74,5 +76,8 @@ public class Parser {
     }
     public Path getPath() {
         return this.path;
+    }
+    public String getFilename() {
+        return filename;
     }
 }
