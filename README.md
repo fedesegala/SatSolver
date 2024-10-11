@@ -1,3 +1,3 @@
-# AR_SubSolver
+# Automatic Reasoning - SAT Solver
 
-Automated Reasoning subsolver project. Academic Year 2023-2024
+Implementation of the CDCL procedure for solving boolean satisfiability problems
